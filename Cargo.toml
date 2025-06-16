@@ -1,0 +1,10 @@
+[workspace]
+resolver = "3"
+members = ["minigrep", "web-server"]
+
+[workspace.package]
+edition = "2024"
+license = "Apache-2.0"
+readme = "README.md"
+repository = "https://github.com/bewaremypower/rust-lab"
+version = "0.1.0"
