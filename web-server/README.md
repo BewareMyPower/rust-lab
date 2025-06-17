@@ -28,27 +28,13 @@ Finally, press Ctrl+C to exit the server.
 Example outputs when the server exited after running the client script twice:
 
 ```
-2025-06-16 22:32:28.987 - main - Listening on 127.0.0.1:7878
-2025-06-16 22:32:28.988 - main - Worker 0 created
-2025-06-16 22:32:28.988 - main - Worker 1 created
-2025-06-16 22:32:28.988 - main - Worker 2 created
-2025-06-16 22:32:28.988 - main - Worker 3 created
-2025-06-16 22:32:31.066 - acceptor - Accepted connection from 127.0.0.1:58369
+...
 2025-06-16 22:32:31.066 - worker-0 - Worker 0 received a job
-2025-06-16 22:32:31.171 - acceptor - Accepted connection from 127.0.0.1:58370
 2025-06-16 22:32:31.171 - worker-1 - Worker 1 received a job
-2025-06-16 22:32:31.276 - acceptor - Accepted connection from 127.0.0.1:58371
 2025-06-16 22:32:31.277 - worker-2 - Worker 2 received a job
-2025-06-16 22:32:32.008 - acceptor - Accepted connection from 127.0.0.1:58373
 2025-06-16 22:32:32.008 - worker-3 - Worker 3 received a job
-2025-06-16 22:32:32.113 - acceptor - Accepted connection from 127.0.0.1:58374
 2025-06-16 22:32:32.113 - worker-0 - Worker 0 received a job
-2025-06-16 22:32:32.219 - acceptor - Accepted connection from 127.0.0.1:58375
 2025-06-16 22:32:32.219 - worker-1 - Worker 1 received a job
 ^C2025-06-16 22:32:34.253 - ctrl-c - The server is shutting down and will exit after accepting another connection
-2025-06-16 22:32:34.292 - acceptor - Server has been shut down, exiting
-2025-06-16 22:32:34.292 - worker-0 - Worker 0 is shutting down
-2025-06-16 22:32:34.293 - worker-1 - Worker 1 is shutting down
-2025-06-16 22:32:34.293 - worker-2 - Worker 2 is shutting down
-2025-06-16 22:32:34.293 - worker-3 - Worker 3 is shutting down
+...
 ```

@@ -52,12 +52,9 @@ impl ThreadPool {
 
     pub fn shutdown(&mut self) {
         let workers = self.workers.drain(..).collect::<Vec<_>>();
-        for worker in workers {
-            worker
-                .running
-                .store(false, std::sync::atomic::Ordering::Release);
-            worker.sender.send(Box::new(|| {})).unwrap();
-            worker.handle.join().unwrap();
+        for (i, worker) in workers.into_iter().enumerate() {
+            log!("Shutting down worker {}", i);
+            worker.close();
         }
     }
 }
@@ -101,5 +98,12 @@ impl Worker {
             handle,
             running,
         }
+    }
+
+    fn close(self) {
+        self.running
+            .store(false, std::sync::atomic::Ordering::Release);
+        self.sender.send(Box::new(|| {})).unwrap();
+        self.handle.join().unwrap();
     }
 }
