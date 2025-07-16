@@ -1,0 +1,11 @@
+[package]
+name = "tokio-demo"
+edition.workspace = true
+license.workspace = true
+readme.workspace = true
+repository.workspace = true
+version.workspace = true
+
+[dependencies]
+tokio = { version = "1", features = ["full"] }
+mini-redis = "0.4"
