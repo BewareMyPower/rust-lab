@@ -1,47 +1,33 @@
-use bytes::Bytes;
-use mini_redis::{Command, Connection, Frame, Result};
-use std::{
-    collections::HashMap,
-    sync::{Arc, Mutex},
-};
-use tokio::net::{TcpListener, TcpStream};
+pub mod server;
 
-type Db = Arc<Mutex<HashMap<String, Bytes>>>;
+use clap::{Parser, Subcommand};
+use mini_redis::Result;
+
+#[derive(Parser)]
+#[command(version, about = "Mini Redis Server", long_about = None)]
+struct Cli {
+    #[command(subcommand)]
+    command: Option<Commands>,
+}
+
+#[derive(Subcommand)]
+enum Commands {
+    Server {
+        #[arg(long, default_value_t = String::from("127.0.0.1:6379"))]
+        url: String,
+    },
+    Client {
+        #[arg(long, default_value_t = String::from("127.0.0.1:6379"))]
+        url: String,
+    },
+}
 
 #[tokio::main]
 async fn main() -> Result<()> {
-    let url = "127.0.0.1:6379";
-    let listener = TcpListener::bind(url).await.unwrap();
-    let db = Db::new(Mutex::new(HashMap::new()));
-    loop {
-        let (socket, addr) = listener.accept().await?;
-        println!("Accepted connection from {}", addr);
-        let db = db.clone();
-        tokio::spawn(async move {
-            process(socket, db).await;
-        });
-    }
-}
-
-async fn process(socket: TcpStream, db: Db) {
-    let mut connection = Connection::new(socket);
-    while let Some(frame) = connection.read_frame().await.unwrap() {
-        let response = match Command::from_frame(frame).unwrap() {
-            Command::Set(cmd) => {
-                let mut db = db.lock().unwrap();
-                db.insert(cmd.key().to_string(), cmd.value().clone());
-                Frame::Simple("OK".to_string())
-            }
-            Command::Get(cmd) => {
-                let db = db.lock().unwrap();
-                if let Some(value) = db.get(cmd.key()) {
-                    Frame::Bulk(value.clone())
-                } else {
-                    Frame::Null
-                }
-            }
-            cmd => panic!("Unimplemented {:?}", cmd),
-        };
-        connection.write_frame(&response).await.unwrap();
+    let cli = Cli::parse();
+    match cli.command {
+        Some(Commands::Server { url }) => server::run_server(&url).await,
+        Some(Commands::Client { .. }) => Err("client mode is not implemented yet".into()),
+        None => Err("No command provided. Use --help for usage information.".into()),
     }
 }
