@@ -6,6 +6,7 @@ use tokio::sync::mpsc;
 enum Command {
     Get { key: String },
     Set { key: String, value: Bytes },
+    Quit,
 }
 
 #[tokio::main]
@@ -27,6 +28,10 @@ async fn main() {
                 Command::Set { key, value } => {
                     println!("Set key: {}, value: {:?}", &key, &value);
                     client.set(&key, value).await.unwrap();
+                }
+                Command::Quit => {
+                    println!("Shutting down manager");
+                    break;
                 }
             }
         }
@@ -52,5 +57,7 @@ async fn main() {
 
     handle1.await.unwrap();
     handle2.await.unwrap();
+
+    tx.send(Command::Quit).await.unwrap();
     manager.await.unwrap();
 }
