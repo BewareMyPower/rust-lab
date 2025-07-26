@@ -1,5 +1,5 @@
 use tokio::{
-    io::{self, AsyncBufReadExt, AsyncWriteExt},
+    io::{self, AsyncBufReadExt, AsyncReadExt, AsyncWriteExt},
     net::{TcpListener, TcpStream},
 };
 
@@ -40,10 +40,28 @@ async fn main() -> io::Result<()> {
         Ok::<_, io::Error>(())
     });
 
+    // The following logic is basically same with `io::copy` but with custom logs.
     let (mut socket, addr) = accept_handle.await?;
     println!("New connection from: {}", addr);
-    let (mut reader, mut writer) = socket.split();
-    io::copy(&mut reader, &mut writer).await?;
+    let mut buf = vec![0; 1024];
+    loop {
+        match socket.read(&mut buf).await {
+            Ok(0) => {
+                println!("Connection closed by {}", addr);
+                break;
+            }
+            Ok(n) => {
+                if socket.write_all(&buf[..n]).await.is_err() {
+                    println!("Failed to write to {}", addr);
+                    break;
+                }
+            }
+            Err(err) => {
+                println!("Error reading from {}: {}", addr, err);
+                break;
+            }
+        }
+    }
 
     handle.await??;
 
