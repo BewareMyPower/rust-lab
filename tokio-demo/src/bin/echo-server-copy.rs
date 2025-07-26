@@ -1,9 +1,20 @@
 use tokio::{
-    io::{self, AsyncBufReadExt, AsyncWriteExt},
-    net::{TcpListener, TcpStream},
+    io::{self, AsyncBufReadExt, AsyncWriteExt, BufReader},
+    net::{
+        TcpListener, TcpStream,
+        tcp::{ReadHalf, WriteHalf},
+    },
 };
 
-fn print_line(description: &'static str, line: &mut String) {
+async fn echo_line<'a>(
+    input: &'static str,
+    description: &'static str,
+    writer: &mut WriteHalf<'a>,
+    buf_reader: &mut BufReader<ReadHalf<'a>>,
+) -> io::Result<()> {
+    writer.write_all(input.as_bytes()).await?;
+    let mut line = String::new();
+    buf_reader.read_line(&mut line).await?;
     if let Some(end) = line.pop() {
         if end != '\n' {
             panic!("Expected line to end with newline, but got: {}", end);
@@ -16,6 +27,7 @@ fn print_line(description: &'static str, line: &mut String) {
         }
         println!("Received {} line: {}", description, line);
     }
+    Ok(())
 }
 
 #[tokio::main]
@@ -30,15 +42,8 @@ async fn main() -> io::Result<()> {
         let (reader, mut writer) = client.split();
         let mut buf_reader = io::BufReader::new(reader);
 
-        writer.write_all(b"Hello, world!\r\n").await?;
-        let mut line = String::new();
-        buf_reader.read_line(&mut line).await?;
-        print_line("1st", &mut line);
-
-        writer.write_all(b"Hello, tokio!\n").await?;
-        let mut line = String::new();
-        buf_reader.read_line(&mut line).await?;
-        print_line("2nd", &mut line);
+        echo_line("Hello, world!\r\n", "1st", &mut writer, &mut buf_reader).await?;
+        echo_line("Hello, tokio!\r\n", "2nd", &mut writer, &mut buf_reader).await?;
 
         // Add the type hint so that we can use .await?
         Ok::<_, io::Error>(())
