@@ -1,34 +1,7 @@
 use tokio::{
-    io::{self, AsyncBufReadExt, AsyncWriteExt, BufReader},
-    net::{
-        TcpListener, TcpStream,
-        tcp::{ReadHalf, WriteHalf},
-    },
+    io::{self, AsyncBufReadExt, AsyncWriteExt},
+    net::{TcpListener, TcpStream},
 };
-
-async fn echo_line<'a>(
-    input: &'static str,
-    description: &'static str,
-    writer: &mut WriteHalf<'a>,
-    buf_reader: &mut BufReader<ReadHalf<'a>>,
-) -> io::Result<()> {
-    writer.write_all(input.as_bytes()).await?;
-    let mut line = String::new();
-    buf_reader.read_line(&mut line).await?;
-    if let Some(end) = line.pop() {
-        if end != '\n' {
-            panic!("Expected line to end with newline, but got: {}", end);
-        }
-        if line.chars().last() == Some('\r') {
-            let _ = line.pop();
-            println!("# Removed \\r\\n");
-        } else {
-            println!("# Removed \\n");
-        }
-        println!("Received {} line: {}", description, line);
-    }
-    Ok(())
-}
 
 #[tokio::main]
 async fn main() -> io::Result<()> {
@@ -42,8 +15,26 @@ async fn main() -> io::Result<()> {
         let (reader, mut writer) = client.split();
         let mut buf_reader = io::BufReader::new(reader);
 
-        echo_line("Hello, world!\r\n", "1st", &mut writer, &mut buf_reader).await?;
-        echo_line("Hello, tokio!\r\n", "2nd", &mut writer, &mut buf_reader).await?;
+        let mut echo_line = async |input: &'static str, description: &'static str| {
+            writer.write_all(input.as_bytes()).await?;
+            let mut line = String::new();
+            buf_reader.read_line(&mut line).await?;
+            if let Some('\n') = line.pop() {
+                if let Some('\r') = line.chars().last() {
+                    let _ = line.pop();
+                    println!("# Removed \\r\\n");
+                } else {
+                    println!("# Removed \\n");
+                }
+                println!("Received {} line: {}", description, line);
+            } else {
+                panic!("Expected line to end with newline, but got {}", line);
+            }
+            Ok::<_, io::Error>(())
+        };
+
+        echo_line("Hello, world!\r\n", "1st").await?;
+        echo_line("Hello, tokio!\n", "2nd").await?;
 
         // Add the type hint so that we can use .await?
         Ok::<_, io::Error>(())
