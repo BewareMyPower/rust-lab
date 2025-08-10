@@ -1,3 +1,4 @@
+pub mod connection;
 pub mod server;
 
 use clap::{Parser, Subcommand};

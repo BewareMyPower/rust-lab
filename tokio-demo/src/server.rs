@@ -3,6 +3,7 @@ use std::{
     sync::{Arc, Mutex},
 };
 
+use crate::connection::Connection;
 use bytes::Bytes;
 use mini_redis::{Command, Frame, Result};
 use tokio::net::TcpListener;
@@ -26,7 +27,7 @@ pub(crate) async fn run_server(url: &str) -> Result<()> {
 }
 
 async fn process(socket: tokio::net::TcpStream, db: Db) {
-    let mut connection = mini_redis::Connection::new(socket);
+    let mut connection = Connection::new(socket);
     while let Some(frame) = connection.read_frame().await.unwrap() {
         let response = match Command::from_frame(frame).unwrap() {
             Command::Set(cmd) => {
