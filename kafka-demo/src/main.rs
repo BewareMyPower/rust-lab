@@ -27,7 +27,7 @@ async fn main() {
     let options = Options::parse();
     let mut config = ClientConfig::new();
     config.set("bootstrap.servers", &options.broker);
-    config.set("message.timeout.ms", "5000");
+    config.set("message.timeout.ms", "10000");
     config.set("enable.idempotence", "true");
     if let Some(token) = &options.token {
         config.set("sasl.mechanism", "PLAIN");
@@ -40,11 +40,17 @@ async fn main() {
         config.set("debug", "all");
     }
     let producer: FutureProducer = config.create().unwrap();
-    let value = String::from("msg");
-    let record: FutureRecord<String, String> =
-        FutureRecord::to(options.topic.as_str()).payload(&value);
-    match producer.send(record, Duration::from_secs(0)).await {
-        Ok(result) => println!("Sent to {:?}", result),
-        Err(err) => println!("Failed to send: {:?}", err),
-    };
+    // Send 10 messages synchronously
+    for i in 0..10 {
+        let start = std::time::Instant::now();
+        let value = format!("message {}", i);
+        let record: FutureRecord<String, String> =
+            FutureRecord::to(options.topic.as_str()).payload(&value);
+        let result = producer.send(record, Duration::from_secs(0)).await;
+        let elapsed = start.elapsed().as_millis() as f64;
+        match result {
+            Ok(delivery) => println!("Sent to {:?} after {} ms", delivery, elapsed),
+            Err(err) => println!("Failed to send after {} ms: {:?}", elapsed, err),
+        };
+    }
 }
