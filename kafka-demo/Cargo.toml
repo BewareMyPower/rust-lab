@@ -1,0 +1,13 @@
+[package]
+name = "kafka-demo"
+edition.workspace = true
+license.workspace = true
+readme.workspace = true
+repository.workspace = true
+version.workspace = true
+
+[dependencies]
+clap = { version = "4.5.51", features = ["derive"] }
+env_logger = "0.11.8"
+rdkafka = { version = "0.38.0", features = ["ssl"] }
+tokio = { version = "1.48.0", features = ["full"] }

@@ -1,6 +1,6 @@
 [workspace]
 resolver = "3"
-members = ["minigrep", "tokio-demo", "web-server"]
+members = ["kafka-demo","minigrep", "tokio-demo", "web-server"]
 
 [workspace.package]
 edition = "2024"
