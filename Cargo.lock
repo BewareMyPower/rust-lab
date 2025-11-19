@@ -667,6 +667,23 @@ dependencies = [
 ]
 
 [[package]]
+name = "mea"
+version = "0.4.2"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "6f3876c525f3c3f650b97b69b61eeb27c976e7725e9b59120f774e6fcf02b518"
+dependencies = [
+ "slab",
+]
+
+[[package]]
+name = "mea-demo"
+version = "0.1.0"
+dependencies = [
+ "mea",
+ "tokio",
+]
+
+[[package]]
 name = "memchr"
 version = "2.7.5"
 source = "registry+https://github.com/rust-lang/crates.io-index"
